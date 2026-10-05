@@ -366,3 +366,16 @@ test("SSO cookie capture keeps path scoped Skyward cookies and excludes identity
     ],
   );
 });
+
+
+test("Skyward session health values are safe for MCP status output", () => {
+  const health = {
+    valid: false,
+    state: "session_invalid",
+    htmlBytes: 2161,
+  };
+
+  const serialized = JSON.stringify(health);
+  assert.match(serialized, /session_invalid/);
+  assert.doesNotMatch(serialized, /sessionid|encses|cookie|password/i);
+});

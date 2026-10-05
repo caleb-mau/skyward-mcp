@@ -47,7 +47,7 @@ Current tools:
 
 | Tool | Purpose |
 | --- | --- |
-| `skyward_status` | Show redacted session and provider status |
+| `skyward_status` | Validate the current Skyward session and show redacted health, role, and provider status |
 | `skyward_get_capabilities` | Show exactly what the active provider supports |
 | `skyward_get_report_card` | Read report card grade data |
 | `skyward_get_gradebook` | Read a detailed course gradebook |

@@ -194,8 +194,11 @@ export async function authenticateAndSave(args: {
 
 export async function redactedRuntimeConfig() {
   const loaded = await loadSkyward();
+  const health = await loaded.client.checkSession();
+
   return {
     auth_source: loaded.source,
+    health,
     session: loaded.client.sessionSummary(),
     capabilities: {
       generation: loaded.client.capabilities().generation,

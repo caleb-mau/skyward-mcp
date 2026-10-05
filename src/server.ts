@@ -139,7 +139,7 @@ export function createServer(): McpServer {
     "skyward_status",
     {
       description:
-        "Show the configured Skyward session summary, authentication source, role hint, generation, and capabilities without exposing cookies, passwords, or session tokens.",
+        "Validate the configured Skyward session and show its health, authentication source, role hint, generation, and capabilities without exposing cookies, passwords, or session tokens.",
       inputSchema: z.object({}),
       annotations: skywardToolAnnotations("skyward_status"),
       _meta: {
@@ -150,8 +150,9 @@ export function createServer(): McpServer {
     },
     async () => {
       try {
-        return ok(await redactedRuntimeConfig(), {
-          connected: true,
+        const data = await redactedRuntimeConfig();
+        return ok(data, {
+          connected: data.health.valid,
           read_only: true,
         });
       } catch (error) {
