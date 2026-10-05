@@ -5,6 +5,7 @@ import {
   type SkywardSessionExport,
 } from "skyward-rest";
 import {
+  parseSessionBase64,
   parseSessionJson,
 } from "../src/config";
 import {
@@ -66,5 +67,34 @@ test("OAuth metadata is deployment scoped", () => {
   assert.equal(resource.resource, origin);
   assert.ok(
     parseScope("offline_access").includes("mcp"),
+  );
+});
+
+
+test("base64 hosted session transport round trips", () => {
+  const session: SkywardSessionExport = {
+    version: 1,
+    generation: "sms2",
+    baseUrl:
+      "https://skyward.example.test/scripts/wsisa.dll/WService=wsEAplus/",
+    role: "student",
+    sms2: {
+      dwd: "1",
+      wfaacl: "2",
+      encses: "3",
+      sessionId: "4",
+    },
+  };
+
+  const encoded = Buffer.from(
+    JSON.stringify(session),
+    "utf8",
+  ).toString("base64");
+
+  const parsed = parseSessionBase64(encoded);
+  assert.equal(parsed.sms2?.sessionId, "4");
+  assert.throws(
+    () => parseSessionBase64("not base64 !!!"),
+    /not valid base64/,
   );
 });
