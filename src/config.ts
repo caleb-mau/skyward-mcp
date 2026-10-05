@@ -15,6 +15,7 @@ import {
 } from "skyward-rest";
 
 export type AuthSource =
+  | "session_b64"
   | "session_env"
   | "session_file"
   | "native_password_env";
@@ -63,6 +64,20 @@ async function fromSessionExport(
 }
 
 async function loadUncached(): Promise<LoadedSkyward> {
+  const sessionB64 = process.env.SKYWARD_SESSION_B64?.trim();
+  if (sessionB64) {
+    let decoded: string;
+    try {
+      decoded = Buffer.from(sessionB64, "base64").toString("utf8");
+    } catch {
+      throw new Error("SKYWARD_SESSION_B64 is not valid base64.");
+    }
+    return fromSessionExport(
+      parseSessionJson(decoded),
+      "session_b64",
+    );
+  }
+
   const sessionJson = process.env.SKYWARD_SESSION_JSON?.trim();
   if (sessionJson) {
     return fromSessionExport(
@@ -107,7 +122,7 @@ async function loadUncached(): Promise<LoadedSkyward> {
   }
 
   throw new Error(
-    "Skyward is not configured. Run npm run setup locally, provide SKYWARD_SESSION_JSON, point SKYWARD_SESSION_FILE at a valid session export, or configure compatible SMS 2.0 login credentials.",
+    "Skyward is not configured. Run npm run setup locally, provide SKYWARD_SESSION_B64 or SKYWARD_SESSION_JSON, point SKYWARD_SESSION_FILE at a valid session export, or configure compatible SMS 2.0 login credentials.",
   );
 }
 
