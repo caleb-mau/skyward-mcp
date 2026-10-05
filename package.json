@@ -16,7 +16,8 @@
     "setup": "tsx src/index.ts setup",
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "vercel:env": "tsx src/index.ts setup --vercel-env"
+    "vercel:env": "tsx src/index.ts setup --vercel-env",
+    "discover": "tsx src/discover.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",
@@ -24,7 +25,9 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "skyward-rest": "github:caleb-mau/skyward-rest#b84be0b1452daa70a0331a7abd68492462ea5d6d",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "cheerio": "^1.1.2",
+    "playwright-core": "^1.56.1"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",
