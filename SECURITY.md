@@ -26,6 +26,20 @@ For hosted deployments, session JSON and native login credentials are deployment
 
 Authenticated Skyward requests are implemented by skyward-rest, which restricts authenticated requests to the configured Skyward origin.
 
+## Route discovery
+
+`npm run discover` is a local development recorder for reverse engineering the Skyward web interface the authenticated user can already access.
+
+The recorder uses an exact Skyward origin allowlist. Traffic to SSO identity providers and other origins is ignored.
+
+Raw browser traffic is processed only in memory long enough to derive structural metadata. The generated export does not intentionally contain raw response text, cookies, authorization headers, passwords, or session token values.
+
+Request values that are not a small allowlisted protocol constant are replaced with stable local placeholders. HTML export keeps structure such as field names, form actions, endpoint references, table ID patterns, and data attribute names while discarding page text.
+
+Do not weaken these rules for convenience. Never add a "raw HAR" option to the normal discovery command.
+
+Always manually review a discovery export before sharing or committing it because district specific pages may expose unexpected field names or structures.
+
 ## Current write policy
 
 The current MCP release is read only.
