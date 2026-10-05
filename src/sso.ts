@@ -148,7 +148,7 @@ function playwrightCookies(
   return cookies.map((cookie) => ({
     name: cookie.name,
     value: cookie.value,
-    domain: cookie.domain,
+    domain: cookie.domain.replace(/^\./, ""),
     path: cookie.path,
     ...(cookie.expires > 0
       ? { expires: cookie.expires }
@@ -256,11 +256,27 @@ export async function captureBrowserSsoSession(
       );
     }
 
-    const cookies = await context.cookies(captureOrigin);
     const baseUrl = new URL(
       state.portalRoot,
       captureOrigin,
     ).toString();
+
+    // BrowserContext.cookies(url) only returns cookies applicable to that
+    // exact URL. Asking for the bare origin can miss Skyward cookies scoped
+    // to /Student/web/ or another role portal path. Read the context cookie
+    // jar and keep only cookies belonging to the Skyward host instead.
+    const skywardHost = new URL(baseUrl).hostname.toLowerCase();
+    const allCookies = await context.cookies();
+    const cookies = allCookies.filter((cookie) => {
+      const domain = cookie.domain
+        .replace(/^\./, "")
+        .toLowerCase();
+
+      return (
+        skywardHost === domain ||
+        skywardHost.endsWith("." + domain)
+      );
+    });
 
     return {
       version: 1,
