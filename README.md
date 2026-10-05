@@ -52,10 +52,15 @@ Current tools:
 | `skyward_get_report_card` | Read report card grade data |
 | `skyward_get_gradebook` | Read a detailed course gradebook |
 | `skyward_get_academic_history` | Read academic history |
+| `skyward_get_attendance` | Read attendance details and history |
+| `skyward_get_schedule` | Read current schedule and course request tables |
+| `skyward_get_test_scores` | Read test score tables |
+| `skyward_get_fees` | Read fee and balance tables |
+| `skyward_get_graduation_requirements` | Read graduation requirement tables |
 
-The current `skyward-rest` SMS 2.0 provider implements the student read surfaces that have actually been rebuilt and tested.
+The current `skyward-rest` SMS 2.0 provider implements the student read surfaces that have actually been rebuilt and tested from modern route discovery.
 
-Teacher, parent, staff, Qmlativ, schedule, attendance, and SIS write support are extension points, not fake claims of support.
+Teacher, parent, staff, Qmlativ, broader profile data, calendar event parsing, and SIS write support remain extension points rather than fake claims of support.
 
 ## Authentication model
 
@@ -190,14 +195,16 @@ Example MCP configuration:
 
 Vercel is the easiest hosted path.
 
-First authenticate locally once:
+First authenticate locally once. For a district using SSO:
 
 ```bash
 git clone https://github.com/caleb-mau/skyward-mcp.git
 cd skyward-mcp
 npm install
-npm run setup
+npm run setup:sso
 ```
+
+For a compatible native Skyward login, `npm run setup` is still available.
 
 Then generate the two values Vercel needs:
 
