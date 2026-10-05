@@ -11,6 +11,7 @@ import {
 import {
   skywardToolAnnotations,
 } from "../src/server";
+import type { CapturedSms2State } from "../src/sso";
 import {
   authorizationServerMetadata,
   parseScope,
@@ -237,7 +238,7 @@ test("browser SSO capture reconstructs the modern SMS session without reading Id
     observeSkywardRequest,
   } = await import("../src/sso");
 
-  const state = { tokens: {} };
+  const state: CapturedSms2State = { tokens: {} };
   const origin = "https://skyward.example.test";
 
   observeSkywardRequest({
