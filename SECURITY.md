@@ -16,6 +16,8 @@ The Skyward layer controls what the authenticated Skyward account may access.
 
 The project does not attempt to bypass district SSO, MFA, or identity provider controls. Do not add code that collects Microsoft, Google, ClassLink, Clever, or other identity provider passwords.
 
+Local browser SSO capture uses a temporary browser profile and inspects only requests back to the configured Skyward origin. Off origin identity provider traffic is ignored. The capture code extracts only the resulting Skyward session fields and Skyward cookies needed to create a SkywardSessionExport.
+
 ## Session storage
 
 Local setup stores the resulting Skyward session with restrictive file permissions and does not persist the password used for compatible SMS 2.0 login.
