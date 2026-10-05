@@ -245,6 +245,55 @@ The OAuth implementation supports:
 * Refresh tokens
 * Deployment scoped resources
 
+## Discover Skyward routes
+
+Skyward installations vary by district, generation, role, and portal version. The local discovery recorder helps map the authenticated web traffic without exporting the underlying school records.
+
+Run:
+
+```bash
+npm run discover
+```
+
+Or provide the initial Skyward URL directly:
+
+```bash
+npm run discover -- --url "https://skyward.example.net/scripts/wsisa.dll/WService=wsEAplus/seplog01.w"
+```
+
+The recorder:
+
+* Opens installed Google Chrome, Microsoft Edge, or Chromium in a temporary profile
+* Lets the user complete the district's real login, SSO, and MFA normally
+* Captures only requests whose origin exactly matches the configured Skyward origin
+* Ignores Microsoft, Google, ClassLink, Clever, and other off origin authentication traffic
+* Records paths, HTTP methods, query field names, form field names, selected safe action constants, status codes, content types, table ID patterns, form structure, same origin links, and referenced Skyward endpoints
+* Writes a machine readable `routes.json` and a human readable `routes.md`
+* Deletes the temporary browser profile when discovery ends
+
+The export intentionally does not write raw response bodies, response text, cookies, authorization headers, passwords, or raw session token values.
+
+By default, files are written under:
+
+```text
+~/.skyward-mcp/discovery/<timestamp>/
+```
+
+When you are finished clicking through Skyward, return to the terminal and press Enter.
+
+Useful options:
+
+```text
+--url URL
+--capture-origin URL
+--out PATH
+--browser-path PATH
+```
+
+The exact origin restriction is deliberate. If a district starts on one hostname but the actual Skyward portal lives on another, pass the final Skyward portal origin with `--capture-origin`. Do not set an identity provider as the capture origin.
+
+Even sanitized exports should be reviewed before they are shared or committed. The sanitizer is designed to remove record values while preserving protocol structure, but no automated redaction system should be treated as a guarantee against every district specific field.
+
 ## Privacy and safety
 
 Skyward is an official student information system. The project treats its data accordingly.
