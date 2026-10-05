@@ -11,6 +11,8 @@ Connect ChatGPT, Claude, or another MCP client to the Skyward account that the p
 [![Node.js 20+](https://img.shields.io/badge/node.js-20%2B-339933?logo=node.js&logoColor=white)](package.json)
 [![MCP](https://img.shields.io/badge/Model%20Context%20Protocol-MCP-111111)](https://modelcontextprotocol.io/)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcaleb-mau%2Fskyward-mcp&env=MCP_AUTH_TOKEN%2CSKYWARD_SESSION_B64)
+
 </div>
 
 ## What this is
@@ -168,28 +170,65 @@ Example MCP configuration:
 }
 ```
 
-## Hosted mode
+## Deploy to Vercel
 
-The remote endpoint is:
+Vercel is the easiest hosted path.
 
-```text
-https://your-deployment.example/mcp
+First authenticate locally once:
+
+```bash
+git clone https://github.com/caleb-mau/skyward-mcp.git
+cd skyward-mcp
+npm install
+npm run setup
 ```
 
-Environment variables:
+Then generate the two values Vercel needs:
+
+```bash
+npm run vercel:env
+```
+
+The command prints:
+
+```text
+MCP_AUTH_TOKEN=...
+SKYWARD_SESSION_B64=...
+```
+
+Treat both values as secrets. `SKYWARD_SESSION_B64` is base64 encoding for safe copy and paste, not encryption.
+
+Now use the one click deployment:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcaleb-mau%2Fskyward-mcp&env=MCP_AUTH_TOKEN%2CSKYWARD_SESSION_B64)
+
+Paste those two values when Vercel asks for environment variables. Next.js is detected automatically and no database is required.
+
+Your MCP endpoint will be:
+
+```text
+https://your-deployment.vercel.app/mcp
+```
+
+The hosted server also supports these alternatives:
 
 | Variable | Required | Purpose |
 | --- | :---: | --- |
 | `MCP_AUTH_TOKEN` | hosted | Protects the remote MCP and backs the ChatGPT OAuth flow |
+| `SKYWARD_SESSION_B64` | recommended hosted auth | Base64 encoded `SkywardSessionExport` |
 | `MCP_PUBLIC_ORIGIN` |  | Optional canonical deployment origin |
-| `SKYWARD_SESSION_JSON` | one Skyward auth source | Complete `SkywardSessionExport` JSON |
-| `SKYWARD_SESSION_FILE` | one Skyward auth source | Path to a session file |
-| `SKYWARD_LOGIN_URL` | classic login | SMS 2.0 login URL |
-| `SKYWARD_USERNAME` | classic login | Native Skyward username |
-| `SKYWARD_PASSWORD` | classic login | Native Skyward password |
+| `SKYWARD_SESSION_JSON` | alternate hosted auth | Raw `SkywardSessionExport` JSON |
+| `SKYWARD_SESSION_FILE` | server file auth | Path to a session file |
+| `SKYWARD_LOGIN_URL` | classic login fallback | SMS 2.0 login URL |
+| `SKYWARD_USERNAME` | classic login fallback | Native Skyward username |
+| `SKYWARD_PASSWORD` | classic login fallback | Native Skyward password |
 | `SKYWARD_TIMEOUT_MS` |  | Skyward request timeout, default 30000 |
 
-Hosted SSO is intentionally not presented as solved yet. Durable browser sessions and reauthentication need a design appropriate for the deployment environment.
+Using a saved session is preferred over storing the Skyward password in Vercel.
+
+A Skyward session can expire. When it does, authenticate locally again, rerun `npm run vercel:env`, replace `SKYWARD_SESSION_B64` in Vercel, and redeploy.
+
+Hosted interactive SSO is not presented as solved yet. The local browser capture layer will eventually produce the same session export, so Vercel does not need to know whether the original login used Microsoft, Google, ClassLink, Clever, MFA, or native Skyward authentication.
 
 ## ChatGPT
 
