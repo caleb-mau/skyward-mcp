@@ -4,6 +4,11 @@ const tools = [
   "Report cards",
   "Detailed gradebook",
   "Academic history",
+  "Attendance",
+  "Schedule",
+  "Test scores",
+  "Fees",
+  "Graduation requirements",
 ];
 
 export default function Home() {
@@ -67,7 +72,7 @@ export default function Home() {
         <p className="foot">
           For Vercel, authenticate locally once and run <code>npm run vercel:env</code>.
           Paste the two generated secret values into the one click deploy flow.
-          Browser based SSO is designed to live in this self hosted application,
+          Browser based SSO now runs locally through <code>npm run setup:sso</code>,
           not in skyward-rest. The current release accepts imported Skyward
           sessions and classic SMS 2.0 login where supported. Teacher and write
           workflows will be added only after their real Skyward surfaces are
