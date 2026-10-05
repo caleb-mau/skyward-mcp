@@ -15,7 +15,8 @@
     "start:stdio": "tsx src/index.ts",
     "setup": "tsx src/index.ts setup",
     "test": "tsx --test test/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "vercel:env": "tsx src/index.ts setup --vercel-env"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",
