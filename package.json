@@ -17,7 +17,8 @@
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "vercel:env": "tsx src/index.ts setup --vercel-env",
-    "discover": "tsx src/discover.ts"
+    "discover": "tsx src/discover.ts",
+    "setup:sso": "tsx src/index.ts setup --sso"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",
