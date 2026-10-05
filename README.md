@@ -32,7 +32,7 @@ skyward-mcp
   MCP tools
   local setup
   ChatGPT OAuth
-  future browser SSO
+  browser SSO
   role aware privacy
   future write approvals
 ```
@@ -52,10 +52,15 @@ Current tools:
 | `skyward_get_report_card` | Read report card grade data |
 | `skyward_get_gradebook` | Read a detailed course gradebook |
 | `skyward_get_academic_history` | Read academic history |
+| `skyward_get_attendance` | Read attendance details and history |
+| `skyward_get_schedule` | Read current schedule and course request tables |
+| `skyward_get_test_scores` | Read test score tables |
+| `skyward_get_fees` | Read fee and balance tables |
+| `skyward_get_graduation_requirements` | Read graduation requirement tables |
 
-The current `skyward-rest` SMS 2.0 provider implements the student read surfaces that have actually been rebuilt and tested.
+The current `skyward-rest` SMS 2.0 provider implements the student read surfaces that have actually been rebuilt and tested from modern route discovery.
 
-Teacher, parent, staff, Qmlativ, schedule, attendance, and SIS write support are extension points, not fake claims of support.
+Teacher, parent, staff, Qmlativ, broader profile data, calendar event parsing, and SIS write support remain extension points rather than fake claims of support.
 
 ## Authentication model
 
@@ -83,17 +88,13 @@ Other MCP clients may use that secret directly as a Bearer token.
 
 ### Skyward authentication
 
-skyward-mcp supports three session sources:
-
-1. A local session file
-2. `SKYWARD_SESSION_JSON`
-3. Compatible classic SMS 2.0 username and password environment variables
+skyward-mcp supports browser SSO capture, local session files, hosted session secrets, and compatible classic SMS 2.0 native login.
 
 The password path is only for Skyward deployments that still allow that login flow.
 
 If the district requires SSO, skyward-mcp does **not** ask for Microsoft, Google, ClassLink, Clever, or other identity provider passwords.
 
-The intended SSO architecture is:
+Browser SSO is implemented locally with the intended architecture:
 
 ```text
 real district browser login
@@ -110,7 +111,7 @@ SkywardSession
 skyward-rest
 ```
 
-The current server can already import a `SkywardSessionExport`. Interactive browser capture will be added on top of that boundary rather than changing the core architecture.
+Run `npm run setup:sso`. A temporary local Chrome, Edge, or Chromium profile opens to the real district login. Complete SSO and MFA normally. skyward-mcp ignores off origin identity provider traffic and waits until Skyward itself emits the resulting SMS session fields, then saves only the Skyward session locally.
 
 ## Local setup
 
@@ -131,6 +132,26 @@ The setup command opens a page on `127.0.0.1`.
 For a compatible classic SMS 2.0 login, enter the Skyward login URL, username, and password. The local process authenticates directly with that Skyward instance and saves only the resulting session.
 
 The password is not persisted.
+
+### Browser SSO
+
+For districts that use Microsoft, Google, ClassLink, Clever, SAML, or another browser based login:
+
+```bash
+npm run setup:sso
+```
+
+You can also provide the starting Skyward URL:
+
+```bash
+npm run setup -- --sso "https://skyward.example.net/"
+```
+
+The command opens an installed Chrome, Edge, or Chromium browser in a temporary profile. Complete the district login and MFA normally.
+
+skyward-mcp only inspects requests whose origin matches the Skyward origin and only extracts the resulting Skyward session fields needed by skyward-rest. It does not store the identity provider password, SAML assertion, Microsoft token, Google token, or other off origin authentication traffic.
+
+Once the complete Skyward session is observed, the browser closes and the session is saved locally.
 
 The default session path is:
 
@@ -174,14 +195,16 @@ Example MCP configuration:
 
 Vercel is the easiest hosted path.
 
-First authenticate locally once:
+First authenticate locally once. For a district using SSO:
 
 ```bash
 git clone https://github.com/caleb-mau/skyward-mcp.git
 cd skyward-mcp
 npm install
-npm run setup
+npm run setup:sso
 ```
+
+For a compatible native Skyward login, `npm run setup` is still available.
 
 Then generate the two values Vercel needs:
 
@@ -228,7 +251,7 @@ Using a saved session is preferred over storing the Skyward password in Vercel.
 
 A Skyward session can expire. When it does, authenticate locally again, rerun `npm run vercel:env`, replace `SKYWARD_SESSION_B64` in Vercel, and redeploy.
 
-Hosted interactive SSO is not presented as solved yet. The local browser capture layer will eventually produce the same session export, so Vercel does not need to know whether the original login used Microsoft, Google, ClassLink, Clever, MFA, or native Skyward authentication.
+Interactive SSO runs locally rather than inside Vercel. After `npm run setup:sso` succeeds, run `npm run vercel:env` and deploy the resulting session exactly the same way as a native Skyward session. Vercel does not need to know whether the original login used Microsoft, Google, ClassLink, Clever, MFA, or native Skyward authentication.
 
 ## ChatGPT
 

@@ -68,10 +68,18 @@ export class StableRedactor {
 }
 
 export function sanitizeIdentifier(value: string): string {
-  return value
+  let sanitized = value
     .replace(/[A-Fa-f0-9]{24,}/g, "<token>")
-    .replace(/\d+/g, "<n>")
-    .slice(0, 180);
+    .replace(/\d+/g, "<n>");
+
+  // Some Skyward district-link IDs include the signed-in display name.
+  // Keep the structural prefix while discarding that free-form suffix.
+  sanitized = sanitized.replace(
+    /^(link<n>_<n>_[^_]+_<n>_)[A-Za-z][A-Za-z' -]{1,80}$/i,
+    "$1<label>",
+  );
+
+  return sanitized.slice(0, 180);
 }
 
 export function sanitizeScalar(
@@ -255,10 +263,38 @@ function extractEndpointRefs(
 ): string[] {
   const found = new Set<string>();
   const endpointPattern =
-    /(?:https?:\/\/[^\s"'<>]+|(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\.(?:w|p)(?:\?[^\s"'<>]*)?)/gi;
+    /(?:https?:\/\/[^\s"'<>]+|(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\.(?:w|p)(?:\?[^\s"'<>]*)?)/g;
+
+  const looksLikeSkywardProgram = (raw: string): boolean => {
+    let pathname = raw;
+    try {
+      pathname = /^https?:\/\//i.test(raw)
+        ? new URL(raw).pathname
+        : new URL(raw, captureOrigin + "/").pathname;
+    } catch {
+      return false;
+    }
+
+    const parts = pathname.split("/").filter(Boolean);
+    const base = parts.at(-1) || "";
+
+    if (
+      /^(?:q|sf|sep|sem|ssm|ssp|shr|sky|http|mobile|quick|upload|security|browser|browse|fw|usr|save|fc)[a-z0-9_-]*\.(?:w|p)$/i.test(
+        base,
+      )
+    ) {
+      return true;
+    }
+
+    return (
+      parts.some((part) => part.toLowerCase() === "student") &&
+      /^1[a-z0-9_-]{4,}\.(?:w|p)$/i.test(base)
+    );
+  };
 
   for (const match of text.matchAll(endpointPattern)) {
     const raw = match[0];
+    if (!looksLikeSkywardProgram(raw)) continue;
     let value = raw;
 
     try {
@@ -480,8 +516,12 @@ export function sanitizeResponseStructure(args: {
   }
 
   if (
-    contentType.includes("html") ||
-    /<html|<form|<table|<!doctype/i.test(text)
+    !contentType.includes("javascript") &&
+    !contentType.includes("ecmascript") &&
+    (
+      contentType.includes("html") ||
+      /<html|<form|<table|<!doctype/i.test(text)
+    )
   ) {
     return htmlStructure(
       text,

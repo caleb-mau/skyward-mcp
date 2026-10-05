@@ -11,6 +11,7 @@ import {
 import {
   skywardToolAnnotations,
 } from "../src/server";
+import type { CapturedSms2State } from "../src/sso";
 import {
   authorizationServerMetadata,
   parseScope,
@@ -227,5 +228,101 @@ test("discovery ignores URLs outside the configured Skyward origin", async () =>
       redactor,
     ),
     null,
+  );
+});
+
+
+test("browser SSO capture reconstructs the modern SMS session without reading IdP traffic", async () => {
+  const {
+    capturedSessionReady,
+    observeSkywardRequest,
+  } = await import("../src/sso");
+
+  const state: CapturedSms2State = { tokens: {} };
+  const origin = "https://skyward.example.test";
+
+  observeSkywardRequest({
+    url: "https://login.microsoftonline.com/common/SAML",
+    method: "POST",
+    contentType: "application/x-www-form-urlencoded",
+    postData: "SAMLResponse=VERY_SECRET_IDP_ASSERTION",
+    captureOrigin: origin,
+    state,
+  });
+
+  assert.deepEqual(state, { tokens: {} });
+
+  observeSkywardRequest({
+    url: origin + "/Student/web/sfhome01.w",
+    method: "POST",
+    contentType: "application/x-www-form-urlencoded",
+    postData:
+      "dwd=123&wfaacl=456&encses=encrypted-session&FromRecent=true",
+    captureOrigin: origin,
+    state,
+  });
+
+  observeSkywardRequest({
+    url:
+      origin +
+      "/Student/web/httploader.p?file=sfhome01.w",
+    method: "POST",
+    contentType:
+      "application/x-www-form-urlencoded; charset=UTF-8",
+    postData:
+      "action=getAlerts&sessionid=session-789&encses=encrypted-session&dwd=123&wfaacl=456",
+    captureOrigin: origin,
+    state,
+  });
+
+  assert.equal(state.portalRoot, "/Student/web/");
+  assert.equal(state.role, "student");
+  assert.equal(state.tokens.dwd, "123");
+  assert.equal(state.tokens.wfaacl, "456");
+  assert.equal(state.tokens.encses, "encrypted-session");
+  assert.equal(state.tokens.sessionId, "session-789");
+  assert.equal(capturedSessionReady(state), true);
+});
+
+test("discovery strips display names embedded in Skyward element ids", async () => {
+  const { sanitizeIdentifier } = await import(
+    "../src/discovery/sanitize"
+  );
+
+  const sanitized = sanitizeIdentifier(
+    "link12_3_f4fe5_6_CALEB",
+  );
+
+  assert.equal(
+    sanitized,
+    "link<n>_<n>_f<n>fe<n>_<n>_<label>",
+  );
+  assert.doesNotMatch(sanitized, /CALEB/);
+});
+
+test("discovery treats JavaScript as JavaScript and filters property noise", async () => {
+  const {
+    StableRedactor,
+    sanitizeResponseStructure,
+  } = await import("../src/discovery/sanitize");
+
+  const structure = sanitizeResponseStructure({
+    body: Buffer.from(
+      [
+        'const fake = "<table id=\"not-html\"></table>";',
+        'const one = "Object.p";',
+        'const two = "a.p";',
+        'const real = "sfgradebook002.w";',
+      ].join("\n"),
+    ),
+    contentType: "application/javascript",
+    captureOrigin: "https://skyward.example.test",
+    redactor: new StableRedactor(),
+  });
+
+  assert.equal(structure.kind, "javascript");
+  assert.deepEqual(
+    structure.endpoint_refs,
+    ["/sfgradebook002.w"],
   );
 });

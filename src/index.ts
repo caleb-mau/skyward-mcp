@@ -4,6 +4,7 @@ import { createServer } from "./server";
 import {
   importSessionFromCli,
   printVercelEnv,
+  runBrowserSsoSetup,
   runLocalSetup,
 } from "./setup";
 
@@ -13,6 +14,17 @@ async function main(): Promise<void> {
   if (command === "setup") {
     if (args.includes("--vercel-env")) {
       await printVercelEnv();
+      return;
+    }
+
+    const ssoIndex = args.indexOf("--sso");
+    if (ssoIndex >= 0) {
+      const maybeUrl = args[ssoIndex + 1];
+      await runBrowserSsoSetup(
+        maybeUrl && !maybeUrl.startsWith("--")
+          ? maybeUrl
+          : undefined,
+      );
       return;
     }
 
@@ -44,6 +56,7 @@ async function main(): Promise<void> {
         "Usage:",
         "  skyward-mcp                         Start MCP over stdio",
         "  skyward-mcp setup                   Configure compatible SMS 2.0 login locally",
+        "  skyward-mcp setup --sso [URL]       Authenticate through the real browser SSO flow",
         "  skyward-mcp setup --import-session PATH",
         "                                      Import a SkywardSessionExport from a browser SSO flow",
         "  skyward-mcp setup --vercel-env       Print two secret values for one click Vercel deploy",

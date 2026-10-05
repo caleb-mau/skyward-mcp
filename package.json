@@ -17,14 +17,15 @@
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "vercel:env": "tsx src/index.ts setup --vercel-env",
-    "discover": "tsx src/discover.ts"
+    "discover": "tsx src/discover.ts",
+    "setup:sso": "tsx src/index.ts setup --sso"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",
     "next": "16.3.8",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "skyward-rest": "github:caleb-mau/skyward-rest#b84be0b1452daa70a0331a7abd68492462ea5d6d",
+    "skyward-rest": "github:caleb-mau/skyward-rest#5879a635a9641d5f87adbdfe2f3093248882fb8e",
     "zod": "^4.6.5",
     "cheerio": "^1.1.2",
     "playwright-core": "^1.56.1"

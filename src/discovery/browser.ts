@@ -340,7 +340,11 @@ export async function runBrowserDiscovery(
       pending.add(task);
     });
 
-    context.on("page", (page) => {
+    const attachedPages = new WeakSet<object>();
+    const attachPage = (page: ReturnType<BrowserContext["pages"]>[number]) => {
+      if (attachedPages.has(page)) return;
+      attachedPages.add(page);
+
       page.on("framenavigated", (frame) => {
         if (frame !== page.mainFrame()) return;
         const sanitized = sanitizeUrl(
@@ -360,11 +364,17 @@ export async function runBrowserDiscovery(
               : ""),
         });
       });
-    });
+    };
+
+    context.on("page", attachPage);
 
     let pages = context.pages();
+    for (const page of pages) attachPage(page);
+
     if (!pages.length) {
-      pages = [await context.newPage()];
+      const page = await context.newPage();
+      attachPage(page);
+      pages = [page];
     }
 
     await pages[0]?.goto(startUrl.toString(), {
