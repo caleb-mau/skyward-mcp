@@ -326,3 +326,43 @@ test("discovery treats JavaScript as JavaScript and filters property noise", asy
     ["/sfgradebook002.w"],
   );
 });
+
+
+test("SSO cookie capture keeps path scoped Skyward cookies and excludes identity providers", async () => {
+  const { filterSkywardCookies } = await import("../src/sso");
+
+  const cookies = filterSkywardCookies(
+    [
+      {
+        name: "skywardPortal",
+        value: "secret",
+        domain: ".scps.k12.fl.us",
+        path: "/Student/web/",
+        secure: true,
+      },
+      {
+        name: "microsoft",
+        value: "idp-secret",
+        domain: ".microsoftonline.com",
+        path: "/",
+        secure: true,
+      },
+    ],
+    "https://skyward.scps.k12.fl.us/Student/web/",
+  );
+
+  assert.deepEqual(
+    cookies.map((cookie) => ({
+      name: cookie.name,
+      domain: cookie.domain,
+      path: cookie.path,
+    })),
+    [
+      {
+        name: "skywardPortal",
+        domain: ".scps.k12.fl.us",
+        path: "/Student/web/",
+      },
+    ],
+  );
+});
