@@ -22,7 +22,7 @@
     "next": "16.3.8",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "skyward-rest": "github:caleb-mau/skyward-rest#1313f3c113dda585418b7c48fcd883c899c2716b",
+    "skyward-rest": "github:caleb-mau/skyward-rest#b84be0b1452daa70a0331a7abd68492462ea5d6d",
     "zod": "^4.6.5"
   },
   "devDependencies": {
