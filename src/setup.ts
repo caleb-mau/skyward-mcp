@@ -194,7 +194,7 @@ export async function runLocalSetup(): Promise<void> {
           "Content-Type": "text/html; charset=utf-8",
         });
         res.end(
-          `<!doctype html><meta charset="utf-8"><title>Skyward MCP setup</title><style>body{font-family:system-ui;max-width:760px;margin:60px auto;padding:0 24px;line-height:1.6}pre{white-space:pre-wrap;background:#f4f4f4;padding:16px;border-radius:8px}</style><h1>${sso ? "Interactive SSO is required" : "Could not connect"}</h1><pre>${escapeHtml(error instanceof Error ? error.message : String(error))}</pre>${sso ? "<p>This setup page will not ask for your Microsoft, Google, ClassLink, Clever, or district identity provider password. Authenticate through the real district browser flow, then import the resulting SkywardSessionExport with <code>npm run setup -- --import-session path.json</code>.</p>" : ""}<p><a href="/">Go back</a></p>`,
+          `<!doctype html><meta charset="utf-8"><title>Skyward MCP setup</title><style>body{font-family:system-ui;max-width:760px;margin:60px auto;padding:0 24px;line-height:1.6}pre{white-space:pre-wrap;background:#f4f4f4;padding:16px;border-radius:8px}</style><h1>${sso ? "Interactive SSO is required" : "Could not connect"}</h1><pre>${escapeHtml(error instanceof Error ? error.message : String(error))}</pre>${sso ? "<p>This setup page will not ask for your Microsoft, Google, ClassLink, Clever, or district identity provider password. Use <code>npm run setup:sso</code> to authenticate through the real district browser flow and capture the resulting Skyward session locally.</p>" : ""}<p><a href="/">Go back</a></p>`,
         );
       }
       return;
@@ -228,7 +228,7 @@ code{background:#eee;padding:2px 5px;border-radius:4px}
 <main class="card">
 <h1>Skyward MCP setup</h1>
 <p>This page is served only from <code>127.0.0.1</code>. For compatible classic SMS 2.0 deployments, your credentials are sent directly from this local process to your configured Skyward instance to create a session.</p>
-<p class="muted">Your password is not persisted. The resulting Skyward session is stored locally with restrictive file permissions. If your district requires SSO, this form will stop rather than collect your identity provider credentials.</p>
+<p class="muted">Your password is not persisted. The resulting Skyward session is stored locally with restrictive file permissions. If your district requires SSO, this form will stop rather than collect your identity provider credentials. Use <code>npm run setup:sso</code> instead.</p>
 <form method="post" action="/connect">
 <label for="loginUrl">Skyward login URL</label>
 <input id="loginUrl" name="loginUrl" required placeholder="https://skyward.example.net/scripts/wsisa.dll/WService=wsEAplus/seplog01.w">
