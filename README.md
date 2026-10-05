@@ -151,7 +151,7 @@ The command opens an installed Chrome, Edge, or Chromium browser in a temporary 
 
 skyward-mcp only inspects requests whose origin matches the Skyward origin and only extracts the resulting Skyward session fields needed by skyward-rest. It does not store the identity provider password, SAML assertion, Microsoft token, Google token, or other off origin authentication traffic.
 
-Once the complete Skyward session is observed, the browser closes and the session is saved locally.
+Once the complete Skyward session is observed, skyward-mcp validates it with a real Skyward request before saving it. If the captured session does not work outside the browser, setup fails instead of exporting a broken session.
 
 The default session path is:
 
@@ -249,7 +249,21 @@ The hosted server also supports these alternatives:
 
 Using a saved session is preferred over storing the Skyward password in Vercel.
 
-A Skyward session can expire. When it does, authenticate locally again, rerun `npm run vercel:env`, replace `SKYWARD_SESSION_B64` in Vercel, and redeploy.
+A Skyward session can expire. Check the local copy at any time with:
+
+```bash
+npm run session:check
+```
+
+For an existing Vercel deployment, refresh only the Skyward session and keep the existing `MCP_AUTH_TOKEN` so ChatGPT OAuth stays connected:
+
+```bash
+npm run setup:sso
+npm run session:check
+npm run vercel:session
+```
+
+Replace only `SKYWARD_SESSION_B64` in Vercel, then redeploy. `npm run vercel:env` is intended for the initial deployment because it can generate a new MCP access token.
 
 Interactive SSO runs locally rather than inside Vercel. After `npm run setup:sso` succeeds, run `npm run vercel:env` and deploy the resulting session exactly the same way as a native Skyward session. Vercel does not need to know whether the original login used Microsoft, Google, ClassLink, Clever, MFA, or native Skyward authentication.
 

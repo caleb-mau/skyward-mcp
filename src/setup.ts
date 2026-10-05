@@ -15,7 +15,11 @@ import {
   saveLocalSession,
 } from "./config";
 import { captureBrowserSsoSession } from "./sso";
-import { SkywardSsoRequiredError } from "skyward-rest";
+import {
+  SkywardSsoRequiredError,
+  createSkywardClient,
+  type SkywardSessionExport,
+} from "skyward-rest";
 
 function escapeHtml(value: string): string {
   return value.replace(
@@ -51,14 +55,83 @@ function openBrowser(url: string): void {
   child.unref();
 }
 
-export async function printVercelEnv(): Promise<void> {
+async function validatedLocalSession(): Promise<{
+  session: SkywardSessionExport;
+  health: Awaited<ReturnType<ReturnType<typeof createSkywardClient>["checkSession"]>>;
+}> {
   const path = configuredSessionPath();
   const raw = await readFile(path, "utf8");
-  const validated = parseSessionJson(raw);
-  const encoded = Buffer.from(
-    JSON.stringify(validated),
+  const session = parseSessionJson(raw);
+  const client = createSkywardClient({ session });
+  const health = await client.checkSession();
+
+  if (!health.valid) {
+    throw new Error(
+      "The saved Skyward session is not currently valid (" +
+        health.state +
+        "). Run npm run setup:sso again before exporting it.",
+    );
+  }
+
+  return {
+    session: client.exportSession(),
+    health,
+  };
+}
+
+function encodeSession(session: SkywardSessionExport): string {
+  return Buffer.from(
+    JSON.stringify(session),
     "utf8",
   ).toString("base64");
+}
+
+export async function checkLocalSession(): Promise<void> {
+  const path = configuredSessionPath();
+  const raw = await readFile(path, "utf8");
+  const session = parseSessionJson(raw);
+  const health = await createSkywardClient({
+    session,
+  }).checkSession();
+
+  process.stdout.write(
+    JSON.stringify(
+      {
+        path,
+        health,
+        session: {
+          generation: session.generation,
+          baseUrl: session.baseUrl,
+          role: session.role || "unknown",
+          hasCookies: Boolean(session.cookies?.length),
+          hasSms2Tokens: Boolean(session.sms2),
+        },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+
+  if (!health.valid) {
+    process.exitCode = 2;
+  }
+}
+
+export async function printVercelSession(): Promise<void> {
+  const { session } = await validatedLocalSession();
+
+  process.stdout.write(
+    [
+      "# Treat this value as a secret.",
+      "# SKYWARD_SESSION_B64 is base64 encoding, not encryption.",
+      "SKYWARD_SESSION_B64=" + encodeSession(session),
+      "",
+    ].join("\n"),
+  );
+}
+
+export async function printVercelEnv(): Promise<void> {
+  const { session } = await validatedLocalSession();
   const token =
     process.env.MCP_AUTH_TOKEN?.trim() ||
     randomBytes(32).toString("base64url");
@@ -68,7 +141,7 @@ export async function printVercelEnv(): Promise<void> {
       "# Treat both values below as secrets.",
       "# SKYWARD_SESSION_B64 is base64 encoding, not encryption.",
       "MCP_AUTH_TOKEN=" + token,
-      "SKYWARD_SESSION_B64=" + encoded,
+      "SKYWARD_SESSION_B64=" + encodeSession(session),
       "",
     ].join("\n"),
   );
@@ -107,12 +180,25 @@ export async function runBrowserSsoSetup(
     const session = await captureBrowserSsoSession({
       startUrl,
     });
-    const path = await saveLocalSession(session);
+
+    const client = createSkywardClient({ session });
+    const health = await client.checkSession();
+    if (!health.valid) {
+      throw new Error(
+        "Skyward session capture completed, but the captured session did not validate locally (" +
+          health.state +
+          "). Try the SSO flow again.",
+      );
+    }
+
+    const path = await saveLocalSession(
+      client.exportSession(),
+    );
 
     process.stderr.write(
       [
         "",
-        "Skyward browser session captured.",
+        "Skyward browser session captured and validated.",
         "Saved to: " + path,
         "Portal: " + session.baseUrl,
         "Role hint: " + (session.role || "unknown"),

@@ -18,7 +18,9 @@
     "typecheck": "tsc --noEmit",
     "vercel:env": "tsx src/index.ts setup --vercel-env",
     "discover": "tsx src/discover.ts",
-    "setup:sso": "tsx src/index.ts setup --sso"
+    "setup:sso": "tsx src/index.ts setup --sso",
+    "session:check": "tsx src/index.ts setup --check-session",
+    "vercel:session": "tsx src/index.ts setup --vercel-session"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.0",

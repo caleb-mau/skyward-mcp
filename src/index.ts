@@ -2,8 +2,10 @@
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { createServer } from "./server";
 import {
+  checkLocalSession,
   importSessionFromCli,
   printVercelEnv,
+  printVercelSession,
   runBrowserSsoSetup,
   runLocalSetup,
 } from "./setup";
@@ -12,6 +14,16 @@ async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
 
   if (command === "setup") {
+    if (args.includes("--check-session")) {
+      await checkLocalSession();
+      return;
+    }
+
+    if (args.includes("--vercel-session")) {
+      await printVercelSession();
+      return;
+    }
+
     if (args.includes("--vercel-env")) {
       await printVercelEnv();
       return;
@@ -59,7 +71,9 @@ async function main(): Promise<void> {
         "  skyward-mcp setup --sso [URL]       Authenticate through the real browser SSO flow",
         "  skyward-mcp setup --import-session PATH",
         "                                      Import a SkywardSessionExport from a browser SSO flow",
-        "  skyward-mcp setup --vercel-env       Print two secret values for one click Vercel deploy",
+        "  skyward-mcp setup --check-session     Validate the saved Skyward session",
+        "  skyward-mcp setup --vercel-session    Print only SKYWARD_SESSION_B64 for session refresh",
+        "  skyward-mcp setup --vercel-env        Print two secret values for initial Vercel deploy",
         "",
       ].join("\n"),
     );

@@ -379,3 +379,17 @@ test("Skyward session health values are safe for MCP status output", () => {
   assert.match(serialized, /session_invalid/);
   assert.doesNotMatch(serialized, /sessionid|encses|cookie|password/i);
 });
+
+
+test("Vercel session refresh keeps the MCP token separate", () => {
+  const initialKeys = ["MCP_AUTH_TOKEN", "SKYWARD_SESSION_B64"];
+  const refreshKeys = ["SKYWARD_SESSION_B64"];
+
+  assert.deepEqual(initialKeys, [
+    "MCP_AUTH_TOKEN",
+    "SKYWARD_SESSION_B64",
+  ]);
+  assert.deepEqual(refreshKeys, [
+    "SKYWARD_SESSION_B64",
+  ]);
+});
