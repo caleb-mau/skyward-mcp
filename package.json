@@ -25,7 +25,7 @@
     "next": "16.3.8",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "skyward-rest": "github:caleb-mau/skyward-rest#5879a635a9641d5f87adbdfe2f3093248882fb8e",
+    "skyward-rest": "github:caleb-mau/skyward-rest#41f46d3acdc89b199955dea1c564905061d1ab9f",
     "zod": "^4.6.5",
     "cheerio": "^1.1.2",
     "playwright-core": "^1.56.1"
