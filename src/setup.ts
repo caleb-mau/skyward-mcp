@@ -1,8 +1,12 @@
+import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
+import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import {
   authenticateAndSave,
+  configuredSessionPath,
   importSessionFile,
+  parseSessionJson,
 } from "./config";
 import { SkywardSsoRequiredError } from "skyward-rest";
 
@@ -38,6 +42,29 @@ function openBrowser(url: string): void {
   });
   child.on("error", () => undefined);
   child.unref();
+}
+
+export async function printVercelEnv(): Promise<void> {
+  const path = configuredSessionPath();
+  const raw = await readFile(path, "utf8");
+  const validated = parseSessionJson(raw);
+  const encoded = Buffer.from(
+    JSON.stringify(validated),
+    "utf8",
+  ).toString("base64");
+  const token =
+    process.env.MCP_AUTH_TOKEN?.trim() ||
+    randomBytes(32).toString("base64url");
+
+  process.stdout.write(
+    [
+      "# Treat both values below as secrets.",
+      "# SKYWARD_SESSION_B64 is base64 encoding, not encryption.",
+      "MCP_AUTH_TOKEN=" + token,
+      "SKYWARD_SESSION_B64=" + encoded,
+      "",
+    ].join("\n"),
+  );
 }
 
 export async function importSessionFromCli(
