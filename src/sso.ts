@@ -293,7 +293,7 @@ export async function captureBrowserSsoSession(
       generation: "sms2",
       baseUrl,
       role: state.role,
-      cookies: playwrightCookies(cookies),
+      cookies,
       sms2: {
         ...state.tokens,
       },
