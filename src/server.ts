@@ -131,7 +131,7 @@ export function createServer(): McpServer {
     { name: "skyward-mcp", version: "0.1.0" },
     {
       instructions:
-        "Skyward contains official student information system records. Treat all returned education records as sensitive. This release is read only. Never claim teacher write support, attendance write support, or browser SSO automation unless the corresponding tool is actually available. Authentication secrets and Skyward session tokens must never be exposed through MCP responses.",
+        "Skyward contains official student information system records. Treat all returned education records as sensitive. This release is read only. Never claim teacher write support or attendance write support unless the corresponding tool is actually available. Browser SSO setup runs locally outside the MCP tool surface. Authentication secrets and Skyward session tokens must never be exposed through MCP responses.",
     },
   );
 
@@ -206,6 +206,47 @@ export function createServer(): McpServer {
     "Read the authenticated user's academic history as exposed by the active Skyward provider.",
     z.object({}),
     async (_args, client) => client.getAcademicHistory(),
+  );
+
+  tool(
+    server,
+    "skyward_get_attendance",
+    "Read the authenticated student's Skyward attendance tables, including current attendance details and attendance history when available.",
+    z.object({}),
+    async (_args, client) => client.getAttendance(),
+  );
+
+  tool(
+    server,
+    "skyward_get_schedule",
+    "Read the authenticated student's current Skyward schedule and course request tables when available.",
+    z.object({}),
+    async (_args, client) => client.getSchedule(),
+  );
+
+  tool(
+    server,
+    "skyward_get_test_scores",
+    "Read test score tables visible to the authenticated student in Skyward.",
+    z.object({}),
+    async (_args, client) => client.getTestScores(),
+  );
+
+  tool(
+    server,
+    "skyward_get_fees",
+    "Read the authenticated student's Skyward fee and current balance tables.",
+    z.object({}),
+    async (_args, client) => client.getFees(),
+  );
+
+  tool(
+    server,
+    "skyward_get_graduation_requirements",
+    "Read graduation requirement and course requirement tables visible to the authenticated student in Skyward.",
+    z.object({}),
+    async (_args, client) =>
+      client.getGraduationRequirements(),
   );
 
   return server;
