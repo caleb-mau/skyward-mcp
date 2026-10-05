@@ -10,6 +10,7 @@ export default function Home() {
   const configured = Boolean(
     process.env.MCP_AUTH_TOKEN &&
       (
+        process.env.SKYWARD_SESSION_B64 ||
         process.env.SKYWARD_SESSION_JSON ||
         process.env.SKYWARD_SESSION_FILE ||
         (
@@ -64,6 +65,8 @@ export default function Home() {
         </div>
 
         <p className="foot">
+          For Vercel, authenticate locally once and run <code>npm run vercel:env</code>.
+          Paste the two generated secret values into the one click deploy flow.
           Browser based SSO is designed to live in this self hosted application,
           not in skyward-rest. The current release accepts imported Skyward
           sessions and classic SMS 2.0 login where supported. Teacher and write
