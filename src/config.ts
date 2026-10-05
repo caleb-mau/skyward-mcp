@@ -50,6 +50,21 @@ export function parseSessionJson(
   return SkywardSession.from(parsed).export();
 }
 
+export function parseSessionBase64(
+  raw: string,
+): SkywardSessionExport {
+  const normalized = raw.trim();
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(normalized)) {
+    throw new Error("SKYWARD_SESSION_B64 is not valid base64.");
+  }
+
+  const decoded = Buffer.from(normalized, "base64").toString("utf8");
+  if (!decoded.trim().startsWith("{")) {
+    throw new Error("SKYWARD_SESSION_B64 did not decode to a Skyward session JSON object.");
+  }
+  return parseSessionJson(decoded);
+}
+
 async function fromSessionExport(
   session: SkywardSessionExport,
   source: AuthSource,
@@ -66,14 +81,8 @@ async function fromSessionExport(
 async function loadUncached(): Promise<LoadedSkyward> {
   const sessionB64 = process.env.SKYWARD_SESSION_B64?.trim();
   if (sessionB64) {
-    let decoded: string;
-    try {
-      decoded = Buffer.from(sessionB64, "base64").toString("utf8");
-    } catch {
-      throw new Error("SKYWARD_SESSION_B64 is not valid base64.");
-    }
     return fromSessionExport(
-      parseSessionJson(decoded),
+      parseSessionBase64(sessionB64),
       "session_b64",
     );
   }
