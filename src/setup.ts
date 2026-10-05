@@ -2,12 +2,19 @@ import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
+import { createInterface } from "node:readline/promises";
+import {
+  stdin as input,
+  stdout as output,
+} from "node:process";
 import {
   authenticateAndSave,
   configuredSessionPath,
   importSessionFile,
   parseSessionJson,
+  saveLocalSession,
 } from "./config";
+import { captureBrowserSsoSession } from "./sso";
 import { SkywardSsoRequiredError } from "skyward-rest";
 
 function escapeHtml(value: string): string {
@@ -65,6 +72,58 @@ export async function printVercelEnv(): Promise<void> {
       "",
     ].join("\n"),
   );
+}
+
+export async function runBrowserSsoSetup(
+  providedUrl?: string,
+): Promise<void> {
+  const rl = createInterface({ input, output });
+
+  try {
+    const startUrl =
+      providedUrl?.trim() ||
+      (
+        await rl.question(
+          "Skyward login or portal URL: ",
+        )
+      ).trim();
+
+    if (!startUrl) {
+      throw new Error("A Skyward URL is required.");
+    }
+
+    process.stderr.write(
+      [
+        "",
+        "Opening a temporary browser profile for Skyward SSO.",
+        "Complete your normal district login and MFA.",
+        "Identity provider credentials stay inside the browser.",
+        "The local process only watches requests back to the Skyward origin",
+        "for the resulting Skyward session fields.",
+        "",
+      ].join("\n"),
+    );
+
+    const session = await captureBrowserSsoSession({
+      startUrl,
+    });
+    const path = await saveLocalSession(session);
+
+    process.stderr.write(
+      [
+        "",
+        "Skyward browser session captured.",
+        "Saved to: " + path,
+        "Portal: " + session.baseUrl,
+        "Role hint: " + (session.role || "unknown"),
+        "",
+        "You can now start the MCP locally or run npm run vercel:env.",
+        "",
+      ].join("\n"),
+    );
+  } finally {
+    rl.close();
+  }
 }
 
 export async function importSessionFromCli(
